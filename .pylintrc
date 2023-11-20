@@ -1,0 +1,10 @@
+[MASTER]
+disable=
+    C0114, # missing-module-docstring
+    C0115,
+    C0116,
+    attribute-defined-outside-init,
+    redefined-outer-name,
+extension-pkg-whitelist=pydantic
+[FORMAT]
+max-line-length=100

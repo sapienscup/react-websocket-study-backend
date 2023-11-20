@@ -1,0 +1,17 @@
+uvicorn[standard]
+fastapi[all]
+cassandra-driver
+pydantic
+black
+pylint
+Faker
+ariadne
+jsonify
+websockets
+python-socketio
+redis
+python-dotenv
+kafka-python
+gunicorn
+poetry
+autopep8

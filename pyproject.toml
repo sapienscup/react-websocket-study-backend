@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "backend"
+version = "0.0.0"
+description = "Backend"
+authors = []
+readme = "README.md"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.autopep8]
+max_line_length = 100
+in-place = true
+recursive = true
+ignore = ["E712", "W504", "E704", "E722"]
