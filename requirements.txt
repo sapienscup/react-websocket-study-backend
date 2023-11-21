@@ -1,4 +1,4 @@
-uvicorn[standard]
+hypercorn[trio]
 fastapi[all]
 cassandra-driver
 pydantic

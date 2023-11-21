@@ -30,7 +30,7 @@ def generate_todos_week() -> list[dict]:
 def wrap_chat_message(message: str) -> dict:
     return {
         "sender": {
-            "name": fake.name(),
+            "name": "Você",
         },
         "color": fake.color(luminosity='light'),
         "timestamp": int(time() * 1000),
