@@ -1,6 +1,4 @@
-import json
-
-import redis
+import json, redis, uuid
 
 from src.contracts.connections import ConnectionsManagerContract
 from src.infra.envs.envs import get_redis_host, get_redis_port
@@ -11,13 +9,13 @@ class DictConnMan(ConnectionsManagerContract):
         self.kv: dict[str, dict] = {}
 
     def set(self, key: any, value: any):
-        self.kv[key] = value
+        self.kv[f"{uuid.uuid4()}-{key}"] = value
 
     def get(self, key: any):
         self.kv.get(key)
 
     def connections(self) -> int:
-        return len(self.kv.keys)
+        return list(self.kv.keys())
 
 
 class RedisConnManager(ConnectionsManagerContract):
@@ -27,7 +25,7 @@ class RedisConnManager(ConnectionsManagerContract):
         )
 
     def set(self, key: any, value: any):
-        self.kv.set(key, json.dumps(value))
+        self.kv.set(f"{uuid.uuid4()}-{key}", json.dumps(value))
 
     def get(self, key: any):
         return json.loads(self.kv.get(key))

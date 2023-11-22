@@ -32,9 +32,7 @@ class ChatApi(ChatContract):
 
         await websocket.accept()
         self._subscribe(client_host)
-        await websocket.send_text(
-            json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
-        )
+        await self._conns(websocket)
 
         try:
             while True:
@@ -44,19 +42,16 @@ class ChatApi(ChatContract):
 
         except WebSocketDisconnect:
             self._unsubscribe(client_host)
-            await websocket.send_text(
-                json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
-            )
+            await self._conns(websocket)
         except websockets.exceptions.ConnectionClosedOK:
             self._unsubscribe(client_host)
-            await websocket.send_text(
-                json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
-            )
+            await self._conns(websocket)
 
     async def _send(self, websocket: WebSocket):
         client_host = websocket.client.host
 
         await websocket.accept()
+        await self._conns(websocket)
 
         try:
             while True:
@@ -67,12 +62,13 @@ class ChatApi(ChatContract):
 
         except WebSocketDisconnect:
             self._unsubscribe(client_host)
-
+            await self._conns(websocket)
         except json.JSONDecodeError:
             await websocket.send_text("WRONG_JSON_FORMAT")
-
+            await self._conns(websocket)
         except websockets.exceptions.ConnectionClosedOK:
             self._unsubscribe(client_host)
+            await self._conns(websocket)
 
     def _subscribe(self, client_host: str):
         self.clients.set(client_host, {"status": "subscribed"})
@@ -82,3 +78,8 @@ class ChatApi(ChatContract):
 
     def _check(self, client_host: str) -> bool:
         return self.clients.get(client_host)["status"] == "subscribed"
+
+    async def _conns(self, websocket: WebSocket):
+        await websocket.send_text(
+            json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
+        )
