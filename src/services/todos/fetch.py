@@ -3,7 +3,7 @@ import random
 from time import time
 
 from faker import Faker
-from faker.providers import color, date_time, python, emoji
+from faker.providers import color, date_time, emoji, python
 
 from src.contracts.base import BaseContract
 

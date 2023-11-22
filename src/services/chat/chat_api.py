@@ -1,6 +1,7 @@
 import asyncio
 import json
 import random
+from time import time
 
 import websockets
 from fastapi import WebSocketDisconnect
@@ -23,11 +24,17 @@ class ChatApi(ChatContract):
         if choice == MessageType.SEND:
             await self._send(websocket)
 
+        if choice == MessageType.HOW_MUCH:
+            await self.clients.connections()
+
     async def _enter(self, websocket: WebSocket):
         client_host = websocket.client.host
 
         await websocket.accept()
         self._subscribe(client_host)
+        await websocket.send_text(
+            json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
+        )
 
         try:
             while True:
@@ -37,9 +44,14 @@ class ChatApi(ChatContract):
 
         except WebSocketDisconnect:
             self._unsubscribe(client_host)
-
+            await websocket.send_text(
+                json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
+            )
         except websockets.exceptions.ConnectionClosedOK:
             self._unsubscribe(client_host)
+            await websocket.send_text(
+                json.dumps({"qty": self.clients.connections(), "type": "CONN_QTY"})
+            )
 
     async def _send(self, websocket: WebSocket):
         client_host = websocket.client.host
