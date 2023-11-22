@@ -13,5 +13,9 @@ class ConnectionsManagerContract(ABC):
         raise NotImplemented(MUST_IMPLEMENT)
 
     @abstractmethod
+    def unset(self, key: any):
+        raise NotImplemented(MUST_IMPLEMENT)
+
+    @abstractmethod
     def connections(self):
         raise NotImplemented(MUST_IMPLEMENT)

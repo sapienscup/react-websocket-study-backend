@@ -1,11 +1,12 @@
 import asyncio
 import json
 import random
-from time import time
+from json import JSONDecodeError
+import pusher
 
-import websockets
 from fastapi import WebSocketDisconnect
 from starlette.websockets import WebSocket
+from websockets.exceptions import ConnectionClosedOK
 
 from src.constants.enums import MessageType
 from src.contracts.chat import ChatContract
@@ -13,9 +14,14 @@ from src.contracts.connections import ConnectionsManagerContract
 from src.services.todos.fetch import generate_chat, wrap_chat_message
 
 
+PUSHER_CHANNEL = 'my-channel'
+MY_EVENT = 'my-event'
+
+
 class ChatApi(ChatContract):
-    def __init__(self, clients: ConnectionsManagerContract) -> None:
+    def __init__(self, clients: ConnectionsManagerContract, pusher: pusher.Pusher) -> None:
         self.clients = clients
+        self.pusher = pusher
 
     async def perform(self, websocket: WebSocket, choice=MessageType):
         if choice == MessageType.ENTER:
@@ -28,56 +34,63 @@ class ChatApi(ChatContract):
             await self.clients.connections()
 
     async def _enter(self, websocket: WebSocket):
-        client_host = websocket.client.host
+        conn_key = websocket.client.port
 
         await websocket.accept()
-        self._subscribe(client_host)
-        await self._conns(websocket)
+        self._subscribe(conn_key)
 
         try:
             while True:
-                await asyncio.sleep(random.random() * 5)
+                await asyncio.sleep(random.random() * 50)
 
-                await websocket.send_text(json.dumps(generate_chat()))
+                msg = generate_chat()
+
+                dumped_msg = json.dumps(msg)
+
+                await websocket.send_text(dumped_msg)
+
+                await self._conns(websocket)
+
+                self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
 
         except WebSocketDisconnect:
-            self._unsubscribe(client_host)
-            await self._conns(websocket)
-        except websockets.exceptions.ConnectionClosedOK:
-            self._unsubscribe(client_host)
-            await self._conns(websocket)
+            self._unsubscribe(conn_key)
+        except ConnectionClosedOK:
+            self._unsubscribe(conn_key)
 
     async def _send(self, websocket: WebSocket):
-        client_host = websocket.client.host
+        conn_key = websocket.client.port
 
         await websocket.accept()
-        await self._conns(websocket)
 
         try:
             while True:
                 json_data = await websocket.receive_json()
 
                 if json_data:
-                    await websocket.send_text(json.dumps(wrap_chat_message(json_data["message"])))
+                    msg = wrap_chat_message(json_data["message"])
+
+                    dumped_msg = json.dumps(msg)
+
+                    await websocket.send_text(dumped_msg)
+
+                    self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
 
         except WebSocketDisconnect:
-            self._unsubscribe(client_host)
-            await self._conns(websocket)
-        except json.JSONDecodeError:
+            self._unsubscribe(conn_key)
+        except JSONDecodeError:
             await websocket.send_text("WRONG_JSON_FORMAT")
-            await self._conns(websocket)
-        except websockets.exceptions.ConnectionClosedOK:
-            self._unsubscribe(client_host)
-            await self._conns(websocket)
+        except ConnectionClosedOK:
+            self._unsubscribe(conn_key)
 
-    def _subscribe(self, client_host: str):
-        self.clients.set(client_host, {"status": "subscribed"})
+    def _subscribe(self, key: str):
+        self.clients.set(key, {"status": "subscribed"})
 
-    def _unsubscribe(self, client_host: str):
-        self.clients.set(client_host, {"status": "unsubscribed"})
+    def _unsubscribe(self, key: str):
+        self.clients.unset(key)
 
-    def _check(self, client_host: str) -> bool:
-        return self.clients.get(client_host)["status"] == "subscribed"
+    def _check(self, key: str) -> bool:
+        return self.clients.get(key)["status"] == "subscribed"
 
     async def _conns(self, websocket: WebSocket):
         await websocket.send_text(

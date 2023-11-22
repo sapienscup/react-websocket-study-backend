@@ -15,3 +15,4 @@ kafka-python
 gunicorn
 poetry
 autopep8
+pusher
