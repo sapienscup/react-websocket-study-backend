@@ -1,22 +1,40 @@
 import asyncio
+import http
 import json
 import random
 from json import JSONDecodeError
-import pusher
 
+import pusher
 from fastapi import WebSocketDisconnect
 from starlette.websockets import WebSocket
 from websockets.exceptions import ConnectionClosedOK
 
 from src.constants.enums import MessageType
+from src.contracts.base import BaseContract
 from src.contracts.chat import ChatContract
 from src.contracts.connections import ConnectionsManagerContract
 from src.services.todos.fetch import generate_chat, wrap_chat_message
 
+PUSHER_CHANNEL = "my-channel"
+MY_EVENT = "my-event"
 
-PUSHER_CHANNEL = 'my-channel'
-MY_EVENT = 'my-event'
 
+class PublishChatApi(BaseContract):
+    def __init__(self, pusher: pusher.Pusher) -> None:
+        self.pusher = pusher
+
+    def perform(self, message: str, choice) -> dict:
+        if choice == MessageType.SEND:
+            return self._publish(message)
+
+    def _publish(self, message: str) -> dict:
+        msg = wrap_chat_message(message)
+
+        dumped_msg = json.dumps(msg)
+
+        self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
+
+        return http.HTTPStatus.NO_CONTENT
 
 class ChatApi(ChatContract):
     def __init__(self, clients: ConnectionsManagerContract, pusher: pusher.Pusher) -> None:
