@@ -6,9 +6,9 @@ services:
     container_name: cassandra
     restart: on-failure
     environment:
-      - CASSANDRA_CQL_PORT_NUMBER=9042
-      - CASSANDRA_PASSWORD_SEEDER=yes
-      - CASSANDRA_TRANSPORT_PORT_NUMBER=7000
+      CASSANDRA_CQL_PORT_NUMBER: 9042
+      CASSANDRA_PASSWORD_SEEDER: yes
+      CASSANDRA_TRANSPORT_PORT_NUMBER: 7000
     healthcheck:
       test: [ "CMD", "/opt/bitnami/cassandra/bin/cqlsh", "-u cassandra", "-p cassandra" ,"-e \"describe keyspaces\"" ]
       interval: 15s
@@ -17,11 +17,15 @@ services:
     ports:
       - '7000:7000'
       - '9042:9042'
-    # hostname: cass-backend
-    networks:
-      - cass-backend
     volumes:
       - ./data/cassandra:/bitnami
+
+  mongo:
+    image: mongo
+    restart: on-failure
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
 
   cache:
     image: redis:6.2-alpine
@@ -31,35 +35,28 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - ./data/cache:/data
-    # hostname: redis-backend
-    # networks:
-    #   - redis-backend
 
   app:
     ports:
       - '8080:80'
     restart: on-failure
-    # depends_on:
-    #   - cache
     build:
       dockerfile: ./Dockerfile
     volumes:
       - ".:/app"
-    networks:
-      - redis-backend
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    restart: on-failure
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 22181:2181
-    networks: 
-      - broker-kafka
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    restart: on-failure
     depends_on:
       - zookeeper
     ports:
@@ -71,8 +68,6 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks: 
-      - broker-kafka
 
 networks:
   cass-backend:

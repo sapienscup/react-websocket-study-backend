@@ -16,3 +16,5 @@ gunicorn
 poetry
 autopep8
 pusher
+scales
+pymongo[srv]

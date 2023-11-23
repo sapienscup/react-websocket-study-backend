@@ -59,7 +59,7 @@ class ChatApi(ChatContract):
 
         try:
             while True:
-                await asyncio.sleep(random.random() * 50)
+                await asyncio.sleep(random.random() * 5)
 
                 msg = generate_chat()
 
