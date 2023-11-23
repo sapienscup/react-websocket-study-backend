@@ -16,6 +16,7 @@ load_dotenv()
 origins = [
     "http://localhost",
     "http://localhost:3000",
+    "https://react-websocket-study-frontend.vercel.app"
 ]
 
 app = FastAPI(dependencies=[get_token_header_dependency])
