@@ -1,10 +1,7 @@
 from cassandra.cqlengine.models import columns
-from cassandra.cqlengine.management import sync_table
 from cassandra.cqlengine.usertype import UserType
 
 from src.infra.cass.models.base import BaseModel
-from src.infra.middleware.cass import cassandra_middleware
-from src.services.todos.fetch import fake
 
 
 class User(UserType):
