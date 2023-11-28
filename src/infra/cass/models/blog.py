@@ -21,13 +21,3 @@ class Post(BaseModel):
 
     __keyspace__ = "blog"
     __table_name__ = "posts"
-
-
-@cassandra_middleware
-def create_posts():
-    sync_table(Post)
-
-    for _ in range(10):
-        Post.create(title=fake.word(), body=fake.sentence(5), user=User(name=fake.name(), password=fake.word()))
-
-create_posts()
