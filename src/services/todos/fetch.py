@@ -1,17 +1,23 @@
 import datetime
 import random
+import uuid
 from time import time
 
 from faker import Faker
-from faker.providers import color, date_time, emoji, python
+from faker.providers import color, currency, date_time, emoji, lorem, misc, person, python
 
 from src.contracts.base import BaseContract
+from src.infra.cass.models import blog
 
 fake = Faker('pt_BR')
 fake.add_provider(date_time)
 fake.add_provider(color)
 fake.add_provider(python)
 fake.add_provider(emoji)
+fake.add_provider(person)
+fake.add_provider(misc)
+fake.add_provider(lorem)
+fake.add_provider(currency)
 
 
 def generate_todos_week() -> list[dict]:
@@ -27,10 +33,10 @@ def generate_todos_week() -> list[dict]:
     } for j in range(1, 6)]
 
 
-def wrap_chat_message(message: str) -> dict:
+def wrap_chat_message(name: str, message: str) -> dict:
     return {
         "sender": {
-            "name": "Você",
+            "name": name,
         },
         "color": fake.color(luminosity='light'),
         "timestamp": int(time() * 1000),
@@ -82,6 +88,22 @@ def generate_chat() -> dict:
         "timestamp": int(time() * 1000),
         "type": "USER_LOGOUT"
     }
+
+
+def fake_posts():
+    return [
+        blog.Post(**{
+            "id": uuid.uuid4(),
+            "title": fake.sentence(1),
+            "body": fake.sentence(10),
+            "category": fake.word(),
+            "user": {
+                "name": fake.word(),
+                "password": fake.word(),
+            },
+        })
+        for _ in range(10)
+    ]
 
 
 class TodosFetchService(BaseContract):

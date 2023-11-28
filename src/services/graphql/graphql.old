@@ -1,0 +1,77 @@
+from ariadne import QueryType, make_executable_schema
+from ariadne.asgi import GraphQL
+from ariadne.asgi.handlers import GraphQLTransportWSHandler
+from fastapi import Request
+from fastapi.websockets import WebSocket
+
+from src.contracts.graphql import GraphqlContract
+from src.dependencies.db import get_database_session_dependency
+from src.services.blog.post_service import PostService
+
+TYPE_DEFS = """
+type Post {
+    id: String!
+    createdAt: String!
+    updatedAt: String!
+    title: String!
+    body: String!
+    author: String!
+}
+type Blog {
+    posts: [Post]
+}
+type Query {
+    blog: Blog!
+}
+"""
+
+query = QueryType()
+
+
+# @query.field("hello")
+# def resolve_hello(_, info):
+#     request = info.context["request"]
+#     user_agent = request.headers.get("user-agent", "guest")
+#     user_ip = request.client.host
+#     return f"Hello, {user_ip} and {user_agent}!"
+
+
+@query.field("blog")
+def resolve_blog(_, info):
+    request = info.context["request"]
+    user_agent = request.headers.get("user-agent", "guest")
+    user_ip = request.client.host
+    return PostService().perform()
+
+
+class GraphqlService(GraphqlContract):
+    def __init__(self) -> None:
+        schema = make_executable_schema(TYPE_DEFS, query)
+
+        self.graphql_app = GraphQL(
+            schema,
+            debug=True,
+            context_value=self.get_context_value,
+            websocket_handler=GraphQLTransportWSHandler(),
+        )
+
+    def get_context_value(self, request_or_ws: Request | WebSocket, _data) -> dict:
+        return {
+            "request": request_or_ws,
+            "db": request_or_ws.scope["db"],
+        }
+
+    async def handle_graphql_explorer(self, request: Request):
+        return await self.graphql_app.handle_request(request)
+
+    async def handle_graphql_query(
+        self, request: Request, data_base_context=get_database_session_dependency
+    ):
+        request.scope["db"] = data_base_context
+        return await self.graphql_app.handle_request(request)
+
+    async def graphql_subscriptions(
+        self, websocket: WebSocket, data_base_context=get_database_session_dependency
+    ):
+        websocket.scope["db"] = data_base_context
+        await self.graphql_app.handle_websocket(websocket)

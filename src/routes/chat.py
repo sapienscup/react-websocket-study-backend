@@ -3,11 +3,14 @@ import http
 import pusher
 from fastapi import APIRouter, WebSocket
 from pydantic import BaseModel
+from typing import Optional
 
 from src.constants.enums import MessageType
 from src.constants.responses import INTERNAL_ERROR
 from src.infra.ws.conn_manager import DictConnMan
-from src.services.chat.chat_api import ChatApi, PublishChatApi
+from src.services.chat.chat_api import WebsocketChatApi, PublishChatApi
+
+from src.infra.chat_companion.assistant import ChatAssistant
 
 router = APIRouter(
     prefix="/chat",
@@ -35,16 +38,26 @@ class Item(BaseModel):
     message: str
 
 
+class Enter(BaseModel):
+    username: Optional[str]
+    password: Optional[str]
+
+
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await ChatApi(connManager, pusher_client).perform(websocket, MessageType.ENTER)
+    await WebsocketChatApi(connManager, pusher_client).perform(websocket, MessageType.ENTER)
 
 
 @router.post("/send")
 def send_msg_to_chat_channel(item: Item) -> http.HTTPStatus:
-    return PublishChatApi(pusher_client).perform(item.message, MessageType.SEND)
+    return PublishChatApi(pusher_client, ChatAssistant()).perform(item.message, MessageType.SEND)
+
+
+@router.post("/enter")
+def enter_chat_channel(item: Enter) -> http.HTTPStatus:
+    return PublishChatApi(pusher_client, ChatAssistant()).perform(item.username, MessageType.LOGIN)
 
 
 @router.websocket("/ws/send")
 async def websocket_endpoint(websocket: WebSocket):
-    await ChatApi(DictConnMan(), pusher_client).perform(websocket, MessageType.SEND)
+    await WebsocketChatApi(DictConnMan(), pusher_client).perform(websocket, MessageType.SEND)

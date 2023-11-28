@@ -13,30 +13,36 @@ from src.constants.enums import MessageType
 from src.contracts.base import BaseContract
 from src.contracts.chat import ChatContract
 from src.contracts.connections import ConnectionsManagerContract
+from src.infra.chat_companion.assistant import ChatAssistant
+from src.infra.envs.envs import get_pusher_channel, get_pusher_event
 from src.services.todos.fetch import generate_chat, wrap_chat_message
-
-PUSHER_CHANNEL = "my-channel"
-MY_EVENT = "my-event"
 
 
 class PublishChatApi(BaseContract):
-    def __init__(self, pusher: pusher.Pusher) -> None:
+    def __init__(self, pusher: pusher.Pusher, gptPlugin: ChatAssistant) -> None:
         self.pusher = pusher
+        self.gptPlugin = gptPlugin
 
-    def perform(self, message: str, choice) -> dict:
+    def perform(self, message: str, choice) -> None:
         if choice == MessageType.SEND:
             return self._publish(message)
 
-    def _publish(self, message: str) -> dict:
-        msg = wrap_chat_message(message)
-
-        dumped_msg = json.dumps(msg)
-
-        self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
-
+    def _publish(self, message: str) -> None:
+        self._extracted_from__publish_9("Você", message)
+        if gpt_answer := self._check_msg_is_a_question_to_gpt(message):
+            self._extracted_from__publish_9("GPT", gpt_answer)
         return http.HTTPStatus.NO_CONTENT
 
-class ChatApi(ChatContract):
+    def _extracted_from__publish_9(self, arg0, arg1) -> None:
+        wrapped_msg = wrap_chat_message(arg0, arg1)
+        dumped_gpt_answer = json.dumps(wrapped_msg)
+        self.pusher.trigger(get_pusher_channel(), get_pusher_event(), dumped_gpt_answer)
+
+    def _check_msg_is_a_question_to_gpt(self, msg: str) -> str:
+        return self.gptPlugin.perform(msg) if msg.endswith("?") else ""
+
+
+class WebsocketChatApi(ChatContract):
     def __init__(self, clients: ConnectionsManagerContract, pusher: pusher.Pusher) -> None:
         self.clients = clients
         self.pusher = pusher
@@ -48,8 +54,12 @@ class ChatApi(ChatContract):
         if choice == MessageType.SEND:
             await self._send(websocket)
 
+        if choice == MessageType.LOGIN:
+            return http.HTTPStatus.NO_CONTENT
+
         if choice == MessageType.HOW_MUCH:
             await self.clients.connections()
+
 
     async def _enter(self, websocket: WebSocket):
         conn_key = websocket.client.port
@@ -69,7 +79,7 @@ class ChatApi(ChatContract):
 
                 await self._conns(websocket)
 
-                self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
+                self.pusher.trigger(get_pusher_channel(), get_pusher_event(), dumped_msg)
 
         except WebSocketDisconnect:
             self._unsubscribe(conn_key)
@@ -92,7 +102,7 @@ class ChatApi(ChatContract):
 
                     await websocket.send_text(dumped_msg)
 
-                    self.pusher.trigger(PUSHER_CHANNEL, MY_EVENT, dumped_msg)
+                    self.pusher.trigger(get_pusher_channel(), get_pusher_event(), dumped_msg)
 
         except WebSocketDisconnect:
             self._unsubscribe(conn_key)
