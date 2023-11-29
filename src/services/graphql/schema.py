@@ -29,8 +29,8 @@ class User:
 @strawberry.type
 class Query:
     @strawberry.field
-    def user(self, id: int) -> User:
-        return User(id=strawberry.ID("1"), name="John", email="abc@bac.com")
+    def user(self, id: strawberry.ID) -> User:
+        return User(id=strawberry.ID(id), name="John", email="abc@bac.com")
 
     @strawberry.field
     def users(self) -> List[User]:
