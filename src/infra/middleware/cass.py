@@ -4,7 +4,6 @@ import time
 from cassandra.cqlengine.connection import register_connection, set_default_connection
 
 from src.infra.cass.conn import CassConn
-from src.infra.envs.envs import get_env_mode
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -13,6 +12,7 @@ logger = logging.getLogger()
 async def fake_middleware(request, call_next):
     logger.info(request)
     logger.info(call_next)
+
     with CassConn().perform() as context:
         register_connection(str(context), session=context)
         set_default_connection(str(context))

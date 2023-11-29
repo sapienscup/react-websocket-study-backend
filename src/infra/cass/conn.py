@@ -7,15 +7,21 @@ from src.infra.envs.envs import get_cassandra_host, get_env_mode
 
 class CassConn(BaseContract):
     def __init__(self) -> None:
-        self.auth_provider = PlainTextAuthProvider(username="cassandra", password="cassandra")
+        self.auth_provider = PlainTextAuthProvider(
+            username="cassandra", password="cassandra"
+        )
 
     def perform(self):
         self.validations()
 
         hosts = []
         cluster = None
-        if get_env_mode() == "development":
+        env_mode = get_env_mode()
+
+        if env_mode == "development":
             cluster = Cluster(['cassandra'], auth_provider=self.auth_provider)
+        elif env_mode == "staging":
+            return None
         else:
             hosts = get_cassandra_host()
             cluster = Cluster(hosts, auth_provider=self.auth_provider)

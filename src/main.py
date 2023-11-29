@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from src.infra.middleware.cass import fake_middleware
 from src.services.graphql.graphql import graphql_app
 
+from src.infra.envs.envs import get_env_mode
 from .dependencies import get_token_header_dependency
 from .internal import admin
 
@@ -32,7 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.middleware("http")(fake_middleware)
+if get_env_mode() != "staging":
+    app.middleware("http")(fake_middleware)
 
 app.include_router(health.router)
 app.include_router(chat.router)
