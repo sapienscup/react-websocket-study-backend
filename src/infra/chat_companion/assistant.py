@@ -11,7 +11,7 @@ print(g4f.Provider.Ails.params)
 
 class ChatAssistant(BaseContract):
     def perform(self, msg: str):
-        return g4f.ChatCompletion.create(
+        rsp = g4f.ChatCompletion.create(
             model=g4f.models.gpt_4,
             messages=[
                 {
@@ -20,3 +20,8 @@ class ChatAssistant(BaseContract):
                 }
             ],
         )
+
+        return self._parse(rsp)
+
+    def _parse(self, rsp: str):
+        return rsp[-1]
