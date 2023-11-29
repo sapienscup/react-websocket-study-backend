@@ -24,4 +24,4 @@ class ChatAssistant(BaseContract):
         return self._parse(rsp)
 
     def _parse(self, rsp: str):
-        return rsp[-1]
+        return rsp.split('\n')[-1]
