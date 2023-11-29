@@ -20,8 +20,6 @@ class CassConn(BaseContract):
 
         if env_mode == "development":
             cluster = Cluster(['cassandra'], auth_provider=self.auth_provider)
-        elif env_mode == "staging":
-            return None
         else:
             hosts = get_cassandra_host()
             cluster = Cluster(hosts, auth_provider=self.auth_provider)
