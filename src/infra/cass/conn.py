@@ -1,5 +1,6 @@
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
+
 from src.contracts.base import BaseContract
 from src.infra.envs.envs import get_cassandra_host, get_env_mode
 

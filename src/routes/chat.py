@@ -1,16 +1,15 @@
 import http
+from typing import Optional
 
 import pusher
 from fastapi import APIRouter, WebSocket
 from pydantic import BaseModel
-from typing import Optional
 
 from src.constants.enums import MessageType
 from src.constants.responses import INTERNAL_ERROR
-from src.infra.ws.conn_manager import DictConnMan
-from src.services.chat.chat_api import WebsocketChatApi, PublishChatApi
-
 from src.infra.chat_companion.assistant import ChatAssistant
+from src.infra.ws.conn_manager import DictConnMan
+from src.services.chat.chat_api import PublishChatApi, WebsocketChatApi
 
 router = APIRouter(
     prefix="/chat",

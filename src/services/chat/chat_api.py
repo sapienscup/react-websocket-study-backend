@@ -60,7 +60,6 @@ class WebsocketChatApi(ChatContract):
         if choice == MessageType.HOW_MUCH:
             await self.clients.connections()
 
-
     async def _enter(self, websocket: WebSocket):
         conn_key = websocket.client.port
 

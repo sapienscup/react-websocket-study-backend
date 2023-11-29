@@ -1,4 +1,5 @@
 import g4f
+
 from src.contracts.base import BaseContract
 from src.infra.envs.envs import get_gpt_prefix
 

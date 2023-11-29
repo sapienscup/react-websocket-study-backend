@@ -1,6 +1,7 @@
 from typing import List
 
 import strawberry
+
 from src.services.blog.post_service import PostService
 
 
