@@ -46,6 +46,8 @@ services:
   app:
     ports:
       - '8080:80'
+      - '7000:7000'
+      - '9042:9042'
     restart: on-failure
     build:
       dockerfile: ./Dockerfile
