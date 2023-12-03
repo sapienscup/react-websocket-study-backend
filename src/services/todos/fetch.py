@@ -102,9 +102,21 @@ def fake_posts():
                 "password": fake.word(),
             },
         })
-        for _ in range(10)
+        for _ in range(random.randint(10, 50))
     ]
 
+
+def fake_post():
+    return blog.Post(**{
+        "id": uuid.uuid4(),
+        "title": fake.sentence(1),
+        "body": fake.sentence(10),
+        "category": fake.word(),
+        "user": {
+            "name": fake.word(),
+            "password": fake.word(),
+        },
+    })
 
 class TodosFetchService(BaseContract):
     def perform(self):

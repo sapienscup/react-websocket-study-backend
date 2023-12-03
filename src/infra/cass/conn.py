@@ -2,7 +2,7 @@ from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
 
 from src.contracts.base import BaseContract
-from src.infra.envs.envs import get_cassandra_host, get_env_mode
+from src.infra.envs.envs import get_cassandra_hosts, get_env_mode
 
 
 class CassConn(BaseContract):
@@ -18,10 +18,12 @@ class CassConn(BaseContract):
         cluster = None
         env_mode = get_env_mode()
 
-        if env_mode == "development":
+        if env_mode == "docker":
             cluster = Cluster(['cassandra'], auth_provider=self.auth_provider)
+        elif env_mode == "debug":
+            cluster = Cluster(auth_provider=self.auth_provider)
         else:
-            hosts = get_cassandra_host()
+            hosts = get_cassandra_hosts().split(',')
             cluster = Cluster(hosts, auth_provider=self.auth_provider)
 
         return cluster.connect()
