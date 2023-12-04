@@ -31,6 +31,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo
       MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - ./data/mongodb:/data/db
     # networks:
     #   - backend
 
