@@ -5,6 +5,7 @@ import strawberry
 from src.services.blog.post_service import PostService
 from src.services.graphql.paging import PaginationWindow
 
+
 @strawberry.type
 class Profile:
     name: str
@@ -20,7 +21,6 @@ class BlogPublication:
     updated_at: str
 
 
-
 @strawberry.type
 class Account:
     id: strawberry.ID
@@ -28,10 +28,11 @@ class Account:
     email: str
 
     @strawberry.field
-    def posts(self, limit: Optional[int] or None, offset: Optional[int] or None) -> PaginationWindow[BlogPublication]:
+    def posts(
+        self, limit: Optional[int] or None, offset: Optional[int] or None
+    ) -> PaginationWindow[BlogPublication]:
         if limit and offset:
             return PostService().paged(limit, offset)
-        return PostService().perform()
 
     @strawberry.field
     def post(self, id: Optional[strawberry.ID] or None) -> BlogPublication:
