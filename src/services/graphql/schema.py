@@ -1,30 +1,62 @@
-import asyncio
+import time
+import uuid
+import signal
 from typing import AsyncGenerator, List
 
 import strawberry
 
+from src.dependencies.kafka import get_kafka_consumer_instance, get_kafka_producer_instance
+from src.infra.envs.envs import get_env_mode
 from src.services.graphql.types import Account
-from src.dependencies.kafka import get_kafka_producer_instance, get_kafka_consumer_instance
-
 
 CHAT_CHANNEL = "chat"
 
 
+def handler(signum, frame):
+    raise Exception
+
+signal.signal(signal.SIGALRM, handler)
+
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def count(self, target: int = 100) -> AsyncGenerator[int, None]:
-        for i in range(target):
-            yield i
-            await asyncio.sleep(0.5)
+    async def chat_write(self, msg: str) -> AsyncGenerator[str, None]:
+        if get_env_mode() == "staging":
+            yield "PRODUCED"
+            return
+
+        get_kafka_producer_instance().send(
+            topic=CHAT_CHANNEL,
+            key=bytes(str(uuid.uuid4()), "utf-8"),
+            value=msg,
+            timestamp_ms=int(time.time()),
+        )
+
+        yield "PRODUCED"
 
     @strawberry.subscription
-    async def chat_write(self, msg: str) -> AsyncGenerator[int, None]:
-        return get_kafka_producer_instance().send(CHAT_CHANNEL, msg)
+    async def chat_read(self) -> AsyncGenerator[str, None]:
+        signal.alarm(5)
 
-    @strawberry.subscription
-    async def chat_read(self) -> AsyncGenerator[int, None]:
-        yield get_kafka_consumer_instance()
+        if get_env_mode() == "staging":
+            yield "CONSUMED"
+            return
+
+        consumer = get_kafka_consumer_instance()
+        index = 0
+        msgs = []
+
+        try:
+            for message in consumer:
+                rsp = f'{message.topic}: key={message.key} value={message.value.decode("utf-8")}'
+                msgs.append(rsp)
+                if index >= 1:
+                    break
+                index += 1
+        except Exception:
+            for m in msgs:
+                print(m)
+                yield m
 
 
 @strawberry.type

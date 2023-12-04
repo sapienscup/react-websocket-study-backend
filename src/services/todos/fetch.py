@@ -96,11 +96,11 @@ def fake_posts():
             "id": uuid.uuid4(),
             "title": fake.sentence(1),
             "body": fake.sentence(10),
-            "category": fake.word(),
-            "user": {
-                "name": fake.word(),
-                "password": fake.word(),
-            },
+            "user": blog.User(**{
+                "name": fake.word()
+            }),
+            "createdAt": fake.timestamp(),
+            "updatedAt": fake.timestamp()
         })
         for _ in range(random.randint(10, 50))
     ]

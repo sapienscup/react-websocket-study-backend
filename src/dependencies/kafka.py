@@ -17,22 +17,11 @@ def get_kafka_producer_instance():
 
 
 def get_kafka_consumer_instance():
-    consumer = KafkaConsumer(
+    return KafkaConsumer(
         get_kafka_topic(),
         group_id=get_kafka_group_id(),
         bootstrap_servers=f"{get_kafka_host()}:{get_kafka_port()}",
     )
-    for message in consumer:
-        print(
-            "%s:%d:%d: key=%s value=%s"
-            % (
-                message.topic,
-                message.partition,
-                message.offset,
-                message.key,
-                message.value.decode("utf-8"),
-            )
-        )
 
 
 get_kafka_producer_dependency = Depends(get_kafka_producer_instance)
