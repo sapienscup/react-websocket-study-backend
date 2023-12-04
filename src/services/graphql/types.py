@@ -42,4 +42,4 @@ class Account:
 
     @strawberry.field
     def post(self, postId: Optional[strawberry.ID] or None) -> BlogPublication:
-        return PostService().by_id(id)
+        return PostService().by_id(postId)
