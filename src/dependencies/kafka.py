@@ -1,12 +1,10 @@
 import json
 
-from kafka import KafkaProducer
-from kafka import KafkaConsumer
+from aiokafka import AIOKafkaConsumer
+from fastapi import Depends
+from kafka import KafkaConsumer, KafkaProducer
 
 from src.infra.envs.envs import get_kafka_group_id, get_kafka_host, get_kafka_port, get_kafka_topic
-
-
-from fastapi import Depends
 
 
 def get_kafka_producer_instance():
@@ -22,6 +20,28 @@ def get_kafka_consumer_instance():
         group_id=get_kafka_group_id(),
         bootstrap_servers=f"{get_kafka_host()}:{get_kafka_port()}",
     )
+
+
+async def consume():
+    consumer = AIOKafkaConsumer(
+        get_kafka_topic(),
+        bootstrap_servers=f"{get_kafka_host()}:{get_kafka_port()}",
+        group_id=get_kafka_group_id(),
+    )
+    await consumer.start()
+    try:
+        async for msg in consumer:
+            print(
+                "consumed: ",
+                msg.topic,
+                msg.partition,
+                msg.offset,
+                msg.key,
+                msg.value,
+                msg.timestamp,
+            )
+    finally:
+        await consumer.stop()
 
 
 get_kafka_producer_dependency = Depends(get_kafka_producer_instance)

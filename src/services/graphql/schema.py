@@ -5,12 +5,12 @@ from typing import AsyncGenerator, List
 
 import strawberry
 
-from src.dependencies.kafka import get_kafka_consumer_instance, get_kafka_producer_instance
+from src.dependencies.kafka import get_kafka_consumer_instance, get_kafka_producer_instance, consume
 from src.infra.envs.envs import get_env_mode
 from src.services.graphql.types import Account
 
 CHAT_CHANNEL = "chat"
-
+MIN_TIMEOUT = 5
 
 def handler(signum, frame):
     raise Exception
@@ -36,28 +36,16 @@ class Subscription:
 
     @strawberry.subscription
     async def chat_read(self) -> AsyncGenerator[str, None]:
-        signal.alarm(5)
-
         if get_env_mode() == "staging":
             yield "CONSUMED"
             return
 
+        signal.alarm(MIN_TIMEOUT)
+
         consumer = get_kafka_consumer_instance()
-        index = 0
-        msgs = []
 
-        try:
-            for message in consumer:
-                rsp = f'{message.topic}: key={message.key} value={message.value.decode("utf-8")}'
-                msgs.append(rsp)
-                if index >= 1:
-                    break
-                index += 1
-        except Exception:
-            for m in msgs:
-                print(m)
-                yield m
-
+        for message in consumer:
+            yield f'{message.topic}: key={message.key} value={message.value.decode("utf-8")}'
 
 @strawberry.type
 class Query:
