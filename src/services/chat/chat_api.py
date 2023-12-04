@@ -26,19 +26,25 @@ class PublishChatApi(BaseContract):
     def perform(self, message: str, choice) -> None:
         if choice == MessageType.SEND:
             return self._publish(message)
+        if choice == MessageType.LOGIN:
+            return self._enter()
 
     def _publish(self, message: str) -> None:
-        self._extracted_from__publish_9("Você", message)
-        if gpt_answer := self._check_msg_is_a_question_to_gpt(message):
-            self._extracted_from__publish_9("GPT", gpt_answer)
+        self._publish_to_channel("Você", message)
+        if gpt_answer := self._is_question(message):
+            self._publish_to_channel("GPT", gpt_answer)
         return http.HTTPStatus.NO_CONTENT
 
-    def _extracted_from__publish_9(self, arg0, arg1) -> None:
+    def _enter(self) -> None:
+        self._publish_to_channel("Você", "Entrei...")
+        return http.HTTPStatus.NO_CONTENT
+
+    def _publish_to_channel(self, arg0, arg1) -> None:
         wrapped_msg = wrap_chat_message(arg0, arg1)
         dumped_gpt_answer = json.dumps(wrapped_msg)
         self.pusher.trigger(get_pusher_channel(), get_pusher_event(), dumped_gpt_answer)
 
-    def _check_msg_is_a_question_to_gpt(self, msg: str) -> str:
+    def _is_question(self, msg: str) -> str:
         return self.gptPlugin.perform(msg) if msg.endswith("?") else ""
 
 
