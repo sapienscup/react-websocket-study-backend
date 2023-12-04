@@ -29,10 +29,11 @@ class Account:
 
     @strawberry.field
     def posts(
-        self, limit: Optional[int] or None, offset: Optional[int] or None
+        self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> PaginationWindow[BlogPublication]:
         if limit and offset:
             return PostService().paged(limit, offset)
+        return PaginationWindow
 
     @strawberry.field
     def post(self, id: Optional[strawberry.ID] or None) -> BlogPublication:
