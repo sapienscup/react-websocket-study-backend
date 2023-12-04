@@ -12,12 +12,12 @@ class PostService(BaseContract):
         return fake_posts() if get_env_mode() == "staging" else Post.all()
 
     def paged(self, limit: Optional[int] or None, offset: Optional[int] or None):
-        return fake_posts() if get_env_mode() == "staging" else self._get_pagination_window(Post.all(), limit, offset)
+        return self._get_pagination_window(fake_posts()) if get_env_mode() == "staging" else self._get_pagination_window(Post.all(), limit, offset)
 
     def by_id(self, id: Optional[int or str] or None):
         return fake_post() if get_env_mode() == "staging" else Post.objects(id=id)
 
-    def _matches(self, item, filters):
+    def _matches(self, item: any, filters: dict):
         for attr_name, val in filters.items():
             if val not in item[attr_name]:
                 return False
