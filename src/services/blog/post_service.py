@@ -15,7 +15,11 @@ class PostService(BaseContract):
         return self._get_pagination_window(fake_posts()) if get_env_mode() == "staging" else self._get_pagination_window(Post.all(), limit, offset)
 
     def by_id(self, id: Optional[int or str] or None):
-        return fake_post() if get_env_mode() == "staging" else Post.objects(id=id)
+        if get_env_mode() == "staging":
+            return fake_post()
+
+        if post := Post.objects(id=id):
+            return post.get()
 
     def _matches(self, item: any, filters: dict):
         for attr_name, val in filters.items():

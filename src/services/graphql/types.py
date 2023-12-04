@@ -33,5 +33,6 @@ class Account:
             return PostService().paged(limit, offset)
         return PostService().perform()
 
+    @strawberry.field
     def post(self, id: Optional[strawberry.ID] or None) -> BlogPublication:
-        return PostService().by_id(id) if id else PostService().perform(id)
+        return PostService().by_id(id)
