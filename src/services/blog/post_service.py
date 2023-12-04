@@ -1,8 +1,10 @@
+from typing import Any, List, Optional
+
 from src.contracts.base import BaseContract
 from src.infra.cass.models.blog import Post
-from src.services.todos.fetch import fake_post, fake_posts
 from src.infra.envs.envs import get_env_mode
-from typing import Optional, List
+from src.services.todos.fetch import fake_post, fake_posts
+from src.services.graphql.paging import PaginationWindow
 
 
 class PostService(BaseContract):
@@ -23,11 +25,11 @@ class PostService(BaseContract):
 
     def _get_pagination_window(
         self,
-        dataset: List[Post],
+        dataset: List[Any],
         limit: int,
         offset: int = 0,
         filters: dict[str, str] = {},
-    ) -> List[Post]:
+    ) -> PaginationWindow:
         if limit <= 0 or limit > 100:
             raise Exception(f"limit ({limit}) must be between 0-100")
 
@@ -39,8 +41,6 @@ class PostService(BaseContract):
 
         total_items_count = len(dataset)
 
-        items = dataset[offset : offset + limit]
+        items: List[Post] = dataset[offset : offset + limit]
 
-        # items = [ItemType.from_row(x) for x in items]
-
-        return {"items": items, "total_items_count": total_items_count}
+        return PaginationWindow(**{"items": items, "total_items_count": total_items_count})
