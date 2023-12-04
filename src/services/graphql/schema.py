@@ -1,21 +1,36 @@
+import json
+import signal
 import time
 import uuid
-import signal
 from typing import AsyncGenerator, List
 
 import strawberry
+from aiokafka import AIOKafkaConsumer
 
-from src.dependencies.kafka import get_kafka_consumer_instance, get_kafka_producer_instance, consume
-from src.infra.envs.envs import get_env_mode
+from src.dependencies.kafka import get_kafka_producer_instance
+from src.infra.envs.envs import (
+    get_env_mode,
+    get_kafka_group_id,
+    get_kafka_host,
+    get_kafka_port,
+    get_kafka_topic,
+)
 from src.services.graphql.types import Account
 
 CHAT_CHANNEL = "chat"
 MIN_TIMEOUT = 5
 
+
+class ChatException(BaseException):
+    pass
+
+
 def handler(signum, frame):
-    raise Exception
+    raise ChatException("EndOfStream")
+
 
 signal.signal(signal.SIGALRM, handler)
+
 
 @strawberry.type
 class Subscription:
@@ -40,12 +55,18 @@ class Subscription:
             yield "CONSUMED"
             return
 
-        signal.alarm(MIN_TIMEOUT)
+        consumer = AIOKafkaConsumer(
+            get_kafka_topic(),
+            bootstrap_servers=f"{get_kafka_host()}:{get_kafka_port()}",
+            group_id=get_kafka_group_id(),
+        )
+        await consumer.start()
+        try:
+            async for msg in consumer:
+                yield f"topic={msg.topic}: key={msg.key.decode('utf-8')}, msg={json.loads(msg.value)}, timestamp={msg.timestamp}"
+        finally:
+            await consumer.stop()
 
-        consumer = get_kafka_consumer_instance()
-
-        for message in consumer:
-            yield f'{message.topic}: key={message.key} value={message.value.decode("utf-8")}'
 
 @strawberry.type
 class Query:

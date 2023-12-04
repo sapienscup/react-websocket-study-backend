@@ -22,28 +22,7 @@ def get_kafka_consumer_instance():
     )
 
 
-async def consume():
-    consumer = AIOKafkaConsumer(
-        get_kafka_topic(),
-        bootstrap_servers=f"{get_kafka_host()}:{get_kafka_port()}",
-        group_id=get_kafka_group_id(),
-    )
-    await consumer.start()
-    try:
-        async for msg in consumer:
-            print(
-                "consumed: ",
-                msg.topic,
-                msg.partition,
-                msg.offset,
-                msg.key,
-                msg.value,
-                msg.timestamp,
-            )
-    finally:
-        await consumer.stop()
-
-
 get_kafka_producer_dependency = Depends(get_kafka_producer_instance)
+
 
 get_kafka_consumer_dependency = Depends(get_kafka_consumer_instance)
