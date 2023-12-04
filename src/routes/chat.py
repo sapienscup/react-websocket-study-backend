@@ -1,5 +1,5 @@
 import http
-from typing import Optional
+from typing import Optional, Annotated
 
 import pusher
 from fastapi import APIRouter, WebSocket
@@ -10,6 +10,7 @@ from src.constants.responses import INTERNAL_ERROR
 from src.infra.chat_companion.assistant import ChatAssistant
 from src.infra.ws.conn_manager import DictConnMan
 from src.services.chat.chat_api import PublishChatApi, WebsocketChatApi
+from src.dependencies.kafka import get_kafka_consumer_dependency
 
 router = APIRouter(
     prefix="/chat",
@@ -44,6 +45,11 @@ class Enter(BaseModel):
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    await WebsocketChatApi(connManager, pusher_client).perform(websocket, MessageType.ENTER)
+
+
+@router.get("/stream")
+async def websocket_endpoint(websocket: WebSocket, consumer: Annotated[dict, get_kafka_consumer_dependency]):
     await WebsocketChatApi(connManager, pusher_client).perform(websocket, MessageType.ENTER)
 
 

@@ -31,10 +31,15 @@ class Account:
     def posts(
         self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> PaginationWindow[BlogPublication]:
+        print(100 * "#")
+        print(limit, offset)
+        print(100 * "#")
+
         if limit and offset:
             return PostService().paged(limit, offset)
+
         return PaginationWindow
 
     @strawberry.field
-    def post(self, id: Optional[strawberry.ID] or None) -> BlogPublication:
+    def post(self, postId: Optional[strawberry.ID] or None) -> BlogPublication:
         return PostService().by_id(id)

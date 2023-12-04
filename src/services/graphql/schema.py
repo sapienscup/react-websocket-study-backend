@@ -4,6 +4,10 @@ from typing import AsyncGenerator, List
 import strawberry
 
 from src.services.graphql.types import Account
+from src.dependencies.kafka import get_kafka_producer_instance, get_kafka_consumer_instance
+
+
+CHAT_CHANNEL = "chat"
 
 
 @strawberry.type
@@ -13,6 +17,14 @@ class Subscription:
         for i in range(target):
             yield i
             await asyncio.sleep(0.5)
+
+    @strawberry.subscription
+    async def chat_write(self, msg: str) -> AsyncGenerator[int, None]:
+        return get_kafka_producer_instance().send(CHAT_CHANNEL, msg)
+
+    @strawberry.subscription
+    async def chat_read(self) -> AsyncGenerator[int, None]:
+        yield get_kafka_consumer_instance()
 
 
 @strawberry.type
