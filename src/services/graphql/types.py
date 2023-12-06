@@ -29,11 +29,9 @@ class Account:
     email: str
 
     @strawberry.field
-    def posts(
-        self, limit: int, offset: int) -> PaginationWindow[BlogPublication]:
-        if limit and offset:
-            return PostService().paged(limit, offset)
+    def posts(self, limit: int, offset: int) -> PaginationWindow[BlogPublication]:
+        return PostService().paged(limit, offset)
 
     @strawberry.field
-    def post(self, postId: Optional[strawberry.ID] or None) -> BlogPublication:
+    def post(self, postId: strawberry.ID) -> BlogPublication:
         return PostService().by_id(postId)
