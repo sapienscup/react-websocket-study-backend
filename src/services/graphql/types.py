@@ -4,6 +4,7 @@ import strawberry
 
 from src.services.blog.post_service import PostService
 from src.services.graphql.paging import PaginationWindow
+from src.infra.exceptions.graphql import GraphqlServiceException
 
 
 @strawberry.type
@@ -29,12 +30,9 @@ class Account:
 
     @strawberry.field
     def posts(
-        self, limit: Optional[int] = None, offset: Optional[int] = None
-    ) -> PaginationWindow[BlogPublication]:
+        self, limit: int, offset: int) -> PaginationWindow[BlogPublication]:
         if limit and offset:
             return PostService().paged(limit, offset)
-
-        return PaginationWindow
 
     @strawberry.field
     def post(self, postId: Optional[strawberry.ID] or None) -> BlogPublication:
