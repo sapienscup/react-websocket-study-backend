@@ -10,9 +10,7 @@ from src.services.graphql.subscription import SubscriptionSchema
 class Query:
     @strawberry.field
     def user(self, userId: strawberry.ID) -> Account:
-        if userId == "42c0be29-00d7-4378-9f58-b83bcf1c4d3a":
-            return Account(id=strawberry.ID(userId), name="John", email="abc@bac.com")
-        return Account()
+        return Account(id=strawberry.ID(userId), name="John", email="abc@bac.com")
 
     @strawberry.field
     def users(self) -> List[Account]:
