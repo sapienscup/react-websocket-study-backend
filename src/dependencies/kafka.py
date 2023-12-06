@@ -1,7 +1,6 @@
 import json
 
-from aiokafka import AIOKafkaConsumer
-from fastapi import Depends
+# from fastapi import Depends
 from kafka import KafkaConsumer, KafkaProducer
 
 from src.infra.envs.envs import get_kafka_group_id, get_kafka_host, get_kafka_port, get_kafka_topic
@@ -22,7 +21,6 @@ def get_kafka_consumer_instance():
     )
 
 
-get_kafka_producer_dependency = Depends(get_kafka_producer_instance)
+# get_kafka_producer_dependency = Depends(get_kafka_producer_instance)
 
-
-get_kafka_consumer_dependency = Depends(get_kafka_consumer_instance)
+# get_kafka_consumer_dependency = Depends(get_kafka_consumer_instance)

@@ -19,9 +19,9 @@ services:
       - '9042:9042'
     volumes:
       - ./data/cassandra:/bitnami
-    # hostname: cassandra
-    # networks:
-    #   - backend
+    hostname: cassandra
+    networks:
+      - backend
 
   mongo:
     image: mongo
@@ -47,17 +47,6 @@ services:
     # networks:
     #   - backend
 
-  app:
-    ports:
-      - '8080:80'
-    restart: on-failure
-    build:
-      dockerfile: ./Dockerfile
-    volumes:
-      - ".:/app"
-    # networks:
-    #   - backend
-
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     restart: on-failure
@@ -66,8 +55,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 22181:2181
-    # networks:
-    #   - backend
+    networks:
+      - backend
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -84,8 +73,25 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    # networks:
-    #   - backend
+    networks:
+      - backend
+
+  app:
+    ports:
+      - '8080:80'
+    restart: on-failure
+    build:
+      dockerfile: ./Dockerfile
+    volumes:
+      - ".:/app"
+    depends_on:
+      - cassandra
+      - kafka
+    networks:
+      - backend
+    environment:
+      CASSANDRA_HOSTS: cassandra
+      ENV_MODE: docker
 
 networks:
   backend:

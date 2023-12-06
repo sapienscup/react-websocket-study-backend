@@ -1,3 +1,5 @@
+import fastapi.responses
+import http
 import json
 import signal
 import time
@@ -37,7 +39,7 @@ class Subscription:
     @strawberry.subscription
     async def chat_write(self, msg: str) -> AsyncGenerator[str, None]:
         if get_env_mode() == "staging":
-            yield "PRODUCED"
+            yield f"Heard: {msg} (staging don't operate with kafka)"
             return
 
         get_kafka_producer_instance().send(
@@ -47,7 +49,7 @@ class Subscription:
             timestamp_ms=int(time.time()),
         )
 
-        yield "PRODUCED"
+        yield f"Heard: {msg}"
 
     @strawberry.subscription
     async def chat_read(self) -> AsyncGenerator[str, None]:

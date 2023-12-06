@@ -31,10 +31,6 @@ class Account:
     def posts(
         self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> PaginationWindow[BlogPublication]:
-        print(100 * "#")
-        print(limit, offset)
-        print(100 * "#")
-
         if limit and offset:
             return PostService().paged(limit, offset)
 
