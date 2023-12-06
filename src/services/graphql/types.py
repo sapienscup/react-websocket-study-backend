@@ -1,10 +1,7 @@
-from typing import Optional
-
 import strawberry
 
 from src.services.blog.post_service import PostService
 from src.services.graphql.paging import PaginationWindow
-from src.infra.exceptions.graphql import GraphqlServiceException
 
 
 @strawberry.type
