@@ -59,6 +59,12 @@ class SubscriptionSchema:
         await consumer.start()
         try:
             async for msg in consumer:
-                yield f"topic={msg.topic}: key={msg.key.decode('utf-8')}, msg={json.loads(msg.value)}, timestamp={msg.timestamp}"
+                rsp_item = {
+                    "topic": msg.topic,
+                    "key": msg.key.decode("utf-8"),
+                    "msg": json.loads(msg.value),
+                    "timestamp": msg.timestamp,
+                }
+                yield json.dumps(rsp_item)
         finally:
             await consumer.stop()
