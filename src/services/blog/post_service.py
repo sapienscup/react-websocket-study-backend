@@ -12,7 +12,11 @@ class PostService(BaseContract):
         return fake_posts() if get_env_mode() == "staging" else Post.all()
 
     def paged(self, limit: Optional[int] or None, offset: Optional[int] or None):
-        return self._get_pagination_window(fake_posts()) if get_env_mode() == "staging" else self._get_pagination_window(Post.all(), limit, offset)
+        return (
+            PaginationWindow(**{"items": fake_posts(), "total_items_count": 100})
+            if get_env_mode() == "staging"
+            else self._get_pagination_window(Post.all(), limit, offset)
+        )
 
     def by_id(self, id: Optional[int or str] or None):
         if get_env_mode() == "staging":
