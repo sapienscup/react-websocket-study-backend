@@ -99,8 +99,9 @@ def fake_posts():
             "user": blog.User(**{
                 "name": fake.word()
             }),
-            "createdAt": fake.timestamp(),
-            "updatedAt": fake.timestamp()
+            "createdAt": int(time() * 1000),
+            "updatedAt": int(time() * 1000),
+            "timestamp": int(time() * 1000)
         })
         for _ in range(random.randint(10, 50))
     ]
