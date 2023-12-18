@@ -18,6 +18,5 @@ autopep8
 pusher
 scales
 pymongo[srv]
-g4f
 strawberry-graphql[fastapi]
 aiokafka
