@@ -5,8 +5,6 @@ from src.infra.envs.envs import get_gpt_prefix
 
 g4f.debug.logging = True
 g4f.check_version = False
-print(g4f.version)
-print(g4f.Provider.Ails.params)
 
 
 class ChatAssistant(BaseContract):
